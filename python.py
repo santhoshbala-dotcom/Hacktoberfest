@@ -1,46 +1,195 @@
-def generate_item_card(item: Dict) -> str:
-    """Generates the HTML card structure for a single item."""
-    status_class = f"status-{item['status'].lower()}"
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found Inventory</title>
+    <style>
+        :root {{
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --lost-color: #ef4444;
+            --lost-bg: #fef2f2;
+            --found-color: #10b981;
+            --found-bg: #ecfdf5;
+            --border: #e2e8f0;
+        }}
 
-    # Sanitize data for display
-    name = item['name'].strip()
-    location = item['location'].strip()
-    contact = item['contact'].strip()
+        * {{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }}
 
-    return f"""
-    <div class="item-card" data-name="{name.lower()}" data-location="{location.lower()}">
-        <span class="status-badge {status_class}">{item['status']}</span>
-        <h3>{name}</h3>
-        <div class="detail-row">
-            <strong>Location/Place:</strong> {location}
-        </div>
-        <div class="detail-row">
-            <strong>Contact Info:</strong> {contact if contact else 'N/A'}
-        </div>
+        body {{
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2rem 1rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }}
+
+        header {{
+            text-align: center;
+            margin-bottom: 2rem;
+        }}
+
+        header h1 {{
+            font-size: 2.25rem;
+            margin-bottom: 0.5rem;
+            color: #1e293b;
+        }}
+
+        header p {{
+            color: var(--text-muted);
+            font-size: 1rem;
+        }}
+
+        .search-container {{
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+        }}
+
+        .search-input {{
+            width: 100%;
+            max-width: 500px;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }}
+
+        .search-input:focus {{
+            border-color: #3b82f6;
+        }}
+
+        .grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }}
+
+        .card {{
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }}
+
+        .card-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }}
+
+        .item-name {{
+            font-size: 1.25rem;
+            font-weight: 600;
+        }}
+
+        .badge {{
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }}
+
+        .badge-lost {{
+            background-color: var(--lost-bg);
+            color: var(--lost-color);
+            border: 1px solid #fca5a5;
+        }}
+
+        .badge-found {{
+            background-color: var(--found-bg);
+            color: var(--found-color);
+            border: 1px solid #6ee7b7;
+        }}
+
+        .card-body p {{
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }}
+
+        .empty-state {{
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 3rem;
+            color: var(--text-muted);
+        }}
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🐾 Lost & Found Inventory</h1>
+        <p>A dynamic registry powered by Python</p>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by item name or location..." onkeyup="filterItems()">
     </div>
-    """
+
+    <div class="grid" id="itemGrid">
+        {item_cards}
+    </div>
+
+    <script>
+        function filterItems() {{
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.getElementsByClassName('card');
+
+            for (let i = 0; i < cards.length; i++) {{
+                const text = cards[i].innerText.toLowerCase();
+                cards[i].style.display = text.includes(input) ? "flex" : "none";
+            }}
+        }}
+    </script>
+</body>
+</html>
+def generate_item_card(item: Dict) -> str:
+    status_class = "badge-lost" if item['status'].lower() == 'lost' else "badge-found"
+    return f"""
+        <div class="card">
+            <div class="card-header">
+                <span class="item-name">{item['name']}</span>
+                <span class="badge {status_class}">{item['status']}</span>
+            </div>
+            <div class="card-body">
+                <p><strong>📍 Location:</strong> {item['location']}</p>
+                <p><strong>📞 Contact:</strong> {item['contact']}</p>
+            </div>
+        </div>"""
 
 def generate_html_content(items: List[Dict]) -> str:
-    """
-    Takes a list of item dictionaries and compiles them into the final HTML body content.
-    """
-    # Generate all the individual cards
-    item_cards = "\n".join([generate_item_card(item) for item in items])
-
-    # Inject the cards into the main template
-    return HTML_TEMPLATE.format(item_cards=item_cards)
+    if not items:
+        cards_html = '<div class="empty-state"><h3>No items recorded yet.</h3></div>'
+    else:
+        cards_html = "\n".join([generate_item_card(item) for item in items])
+    
+    # Inject generated cards into the HTML template
+    return HTML_TEMPLATE.format(item_cards=cards_html)
 
 def save_html(content: str, filename: str = "index.html") -> None:
-    """Writes the generated HTML string to a specified file."""
     try:
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(content)
         print(f"\n✅ Successfully generated web registry: {os.path.abspath(filename)}")
     except IOError as e:
         print(f"❌ Error writing file {filename}: {e}")
-
 def get_validated_status() -> str:
-    """Prompts user for status and validates against 'Lost' or 'Found'."""
     while True:
         status = input("Status (Lost/Found): ").strip().capitalize()
         if status in ["Lost", "Found"]:
@@ -48,7 +197,6 @@ def get_validated_status() -> str:
         print("⚠️ Invalid input. Please enter 'Lost' or 'Found'.")
 
 def run_cli_loop() -> List[Dict]:
-    """Main loop for collecting user input."""
     items: List[Dict] = []
     print("-" * 50)
     print("✨ Welcome to the Lost & Found Entry CLI ✨")
@@ -56,18 +204,15 @@ def run_cli_loop() -> List[Dict]:
 
     while True:
         print("\n--- NEW ENTRY ---")
-
         item_name = input("Enter Item Name: ").strip()
         if not item_name:
             print("Item name is required. Skipping this entry.")
             continue
 
-        # Collect required fields
         status = get_validated_status()
-        location = input("Location/Place found/lost: ").strip()
-        contact = input("Contact Info (Name/Email/Phone): ").strip()
+        location = input("Location/Place found/lost: ").strip() or "Unknown Location"
+        contact = input("Contact Info (Name/Email/Phone): ").strip() or "N/A"
 
-        # Store data
         items.append({
             "name": item_name,
             "status": status,
@@ -75,32 +220,24 @@ def run_cli_loop() -> List[Dict]:
             "contact": contact
         })
 
-        print(f"\n✅ Item '{item_name}' recorded successfully.")
+        print(f"✅ Item '{item_name}' recorded successfully.")
 
-        # Check for termination condition
-        continue_choice = input("\nAdd another entry? (y/n): ").lower()
+        continue_choice = input("\nAdd another entry? (y/n): ").strip().lower()
         if continue_choice != 'y':
             break
 
-    print("\n=======================================")
+    print("\n==========================================")
     print("💾 Data collection finished. Processing files...")
-    print("=======================================")
+    print("==========================================")
     return items
 def main():
-    """The entry point for the application."""
-
-    # 1. Collect data via CLI
     collected_items = run_cli_loop()
-
     if not collected_items:
         print("No items were entered. Exiting without generating HTML.")
         return
 
-    # 2. Generate HTML content
     html_content = generate_html_content(collected_items)
-
-    # 3. Save file
     save_html(html_content)
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
