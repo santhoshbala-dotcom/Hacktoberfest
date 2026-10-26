@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found Registry</title>
+    <style>
+        :root {{
+            --lost-color: #dc3545; /* Red */
+            --found-color: #28a745; /* Green */
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #343a40;
+        }}
+        body {{
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }}
+        header {{
+            text-align: center;
+            margin-bottom: 30px;
+            color: #007bff;
+        }}
+        #filterInput {{
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+        }}
+        #itemGrid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            padding: 0 20px;
+        }}
+        .item-card {{
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s;
+            border-left: 8px solid; /* Used for status color */
+        }}
+        .item-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }}
+        .item-card h3 {{
+            margin-top: 0;
+            color: #007bff;
+        }}
+        .status-badge {{
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }}
+        .status-lost {{
+            background-color: var(--lost-color);
+            color: white;
+            border-left-color: var(--lost-color);
+        }}
+        .status-found {{
+            background-color: var(--found-color);
+            color: white;
+            border-left-color: var(--found-color);
+        }}
+        .detail-row {{
+            margin-bottom: 10px;
+        }}
+        .detail-row strong {{
+            display: block;
+            font-size: 0.9em;
+            color: #6c757d;
+        }}
+        /* JS Filtering Logic */
+        @keyframes fade { from {{ opacity: 1; }} to {{ opacity: 0; }} }
+        .hidden-item {{
+            animation: fade 0.5s forwards;
+            display: none;
+        }}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🐾 Lost & Found Inventory</h1>
+        <p>A dynamic registry powered by Python.</p>
+    </header>
+
+    <input type="text" id="filterInput" placeholder="Search by item name or location...">
+
+    <div id="itemGrid">
+        {item_cards}
+    </div>
+
+    <script>
+        document.getElementById('filterInput').addEventListener('keyup', function() {{
+            let filter = this.value.toUpperCase();
+            let items = document.getElementById('itemGrid').getElementsByClassName('item-card');
+
+            for (let i = 0; i < items.length; i++) {{
+                let item = items[i];
+                // Get text content of the card (Name/Location)
+                let itemText = item.textContent || item.innerText;
+
+                if (itemText.toUpperCase().indexOf(filter) > -1) {{
+                    item.classList.remove('hidden-item');
+                }} else {{
+                    item.classList.add('hidden-item');
+                }}
+            }}
+        }});
+    </script>
+</body>
+</html>
